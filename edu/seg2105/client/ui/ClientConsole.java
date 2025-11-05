@@ -86,8 +86,16 @@ public class ClientConsole implements ChatIF
       while (true) 
       {
         message = fromConsole.nextLine();
+
+        // NEW FEATURE: #quit command exits the client
+        if (message.equals("#quit")) {
+          client.quit();
+          break;
+        }
+
         client.handleMessageFromClientUI(message);
       }
+
     } 
     catch (Exception ex) 
     {
