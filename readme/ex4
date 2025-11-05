@@ -1,0 +1,108 @@
+
+
+Project:** SEG2105 Assignment 2
+Components:** OCSF Client-Server Chat System
+Author: Zachary Yassine
+Student ID: 300419310
+
+Overview
+This project implements a basic chat system using the OCSF framework.
+The system includes:
+
+* A server (`EchoServer`)
+* A text-based client (`ClientConsole`)
+* A network communication layer (`ChatClient`)
+* Support for console commands on both client and server side
+
+---
+
+How to Compile and Run
+
+1. Start the Server
+
+```
+cd src
+javac edu/seg2105/edu/server/backend/EchoServer.java
+java edu.seg2105.edu.server.backend.EchoServer
+```
+
+Expected output:
+
+```
+Server listening for connections on port 5555
+```
+
+2. Start the Client
+
+```
+cd src
+javac edu/seg2105/client/ui/ClientConsole.java
+java edu.seg2105.client.ui.ClientConsole <loginID> localhost 5555
+```
+
+Example:
+
+```
+java edu.seg2105.client.ui.ClientConsole zac localhost 5555
+```
+
+If `loginID` is missing, the client terminates with an error message.
+
+---
+
+Client Console Commands
+
+| Command               | Action                                        |
+| --------------------- | --------------------------------------------- |
+| `#login`              | Connects the client to server (if logged off) |
+| `#logoff`             | Disconnects the client (no exit)              |
+| `#quit`               | Disconnects and exits client                  |
+| `#sethost <hostname>` | Changes host (only while logged off)          |
+| `#setport <port>`     | Changes port (only while logged off)          |
+| `#gethost`            | Displays current host                         |
+| `#getport`            | Displays current port                         |
+
+---
+
+Server Console Commands
+
+| Command  | Action                                                        |
+| -------- | ------------------------------------------------------------- |
+| `#stop`  | Stops listening for new clients (does not disconnect current) |
+| `#start` | Resumes listening                                             |
+| `#close` | Disconnects all clients and closes server                     |
+| `#quit`  | Completely shuts down server                                  |
+
+---
+
+Testing Summary
+
+All test cases from the provided test sheet were run manually.
+Each test passed successfully.
+
+| Test Case                        | Status |
+| -------------------------------- | ------ |
+| 2001 Server startup              | PASS   |
+| 2002 Client startup no login     | PASS   |
+| 2003 Client login without server | PASS   |
+| 2004 Client connection           | PASS   |
+| 2005 Client messaging echo       | PASS   |
+| 2006 Multiple clients            | PASS   |
+| 2007 Server #quit                | PASS   |
+| 2008 Server #close with client   | PASS   |
+| 2009 Server restart              | PASS   |
+| 2010 Client #quit                | PASS   |
+| 2011 Client #logoff              | PASS   |
+| 2012 Server non-default port     | PASS   |
+| 2013 Client non-default port     | PASS   |
+
+---
+
+Notes
+
+* The program must be run **from the project root** so package paths resolve correctly.
+* Only standard Java and the OCSF framework are used.
+
+
+
+
