@@ -79,19 +79,56 @@ public class ClientConsole implements ChatIF
       {
         message = fromConsole.nextLine();
 
-        // NEW FEATURE: #quit command exits the client
-        if (message.equals("#quit")) {
-          client.quit();
-          break;
+        // Handle commands starting with '#'
+        if (message.startsWith("#")) {
+          handleCommand(message);
         }
-
-        client.handleMessageFromClientUI(message);
+        else {
+          client.handleMessageFromClientUI(message);
+        }
       }
 
     } 
     catch (Exception ex) 
     {
       System.out.println("Unexpected error while reading from console!");
+    }
+  }
+
+  // NEW helper method for commands
+  private void handleCommand(String cmd)
+  {
+    if (cmd.equals("#quit")) {
+      client.quit();
+    }
+    else if (cmd.equals("#logoff")) {
+      client.logoff();
+    }
+    else if (cmd.startsWith("#sethost")) {
+      String[] parts = cmd.split(" ");
+      if (parts.length > 1)
+        client.sethost(parts[1]);
+      else
+        System.out.println("Usage: #sethost <hostname>");
+    }
+    else if (cmd.startsWith("#setport")) {
+      String[] parts = cmd.split(" ");
+      if (parts.length > 1)
+        client.setport(Integer.parseInt(parts[1]));
+      else
+        System.out.println("Usage: #setport <port>");
+    }
+    else if (cmd.equals("#login")) {
+      client.login();
+    }
+    else if (cmd.equals("#gethost")) {
+      System.out.println("Current host: " + client.getHost());
+    }
+    else if (cmd.equals("#getport")) {
+      System.out.println("Current port: " + client.getPort());
+    }
+    else {
+      System.out.println("Unknown command.");
     }
   }
 
@@ -111,20 +148,32 @@ public class ClientConsole implements ChatIF
   /**
    * This method is responsible for the creation of the Client UI.
    *
-   * @param args[0] The host to connect to.
+   * @param args[0] The loginID.
+   * @param args[1] The host (optional).
+   * @param args[2] The port (optional).
    */
   public static void main(String[] args) 
   {
+    if (args.length < 1) {
+      System.out.println("ERROR: No login ID provided.\nUsage: java ClientConsole <loginID> [host] [port]");
+      return;
+    }
+
+    String loginID = args[0];
     String host = "localhost";
     int port = DEFAULT_PORT;
 
-    if (args.length > 0)
-      host = args[0];
-
     if (args.length > 1)
-      port = Integer.parseInt(args[1]);
+      host = args[1];
+
+    if (args.length > 2)
+      port = Integer.parseInt(args[2]);
 
     ClientConsole chat = new ClientConsole(host, port);
+
+    // Send login command to the server automatically
+    chat.client.handleMessageFromClientUI("#login " + loginID);
+
     chat.accept();
   }
 

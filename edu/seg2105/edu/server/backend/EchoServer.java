@@ -3,18 +3,9 @@ package edu.seg2105.edu.server.backend;
 // "Object Oriented Software Engineering" and is issued under the open-source
 // license found at www.lloseng.com 
 
-
 import ocsf.server.*;
+import java.util.Collection;
 
-/**
- * This class overrides some of the methods in the abstract 
- * superclass in order to give more functionality to the server.
- *
- * @author Dr Timothy C. Lethbridge
- * @author Dr Robert Lagani&egrave;re
- * @author Fran&ccedil;ois B&eacute;langer
- * @author Paul Holden
- */
 public class EchoServer extends AbstractServer 
 {
   //Class variables *************************************************
@@ -36,7 +27,6 @@ public class EchoServer extends AbstractServer
     super(port);
   }
 
-  
   //Instance methods ************************************************
   
   /**
@@ -45,11 +35,58 @@ public class EchoServer extends AbstractServer
    * @param msg The message received from the client.
    * @param client The connection from which the message originated.
    */
-  public void handleMessageFromClient
-    (Object msg, ConnectionToClient client)
+  public void handleMessageFromClient(Object msg, ConnectionToClient client)
   {
-    System.out.println("Message received: " + msg + " from " + client);
-    this.sendToAllClients(msg);
+    String message = msg.toString();
+
+    // Check if this is a login command
+    if (message.startsWith("#login")) 
+    {
+      String[] parts = message.split(" ");
+      if (parts.length < 2) 
+      {
+        try { client.sendToClient("ERROR: Login failed. No ID provided."); } catch (Exception e) {}
+        return;
+      }
+
+      String loginID = parts[1];
+
+      // If client already has an ID → reject
+      if (client.getInfo("loginID") != null)
+      {
+        try { client.sendToClient("ERROR: You are already logged in."); } catch (Exception e) {}
+        return;
+      }
+
+      // Check if another user already has this loginID
+      Collection<ConnectionToClient> clients = getClientConnections();
+      for (ConnectionToClient c : clients)
+      {
+        Object existingID = c.getInfo("loginID");
+        if (existingID != null && existingID.equals(loginID))
+        {
+          try { client.sendToClient("ERROR: Login ID already in use. Disconnecting."); } catch (Exception e) {}
+          try { client.close(); } catch (Exception e) {}
+          return;
+        }
+      }
+
+      // Assign login ID to this client
+      client.setInfo("loginID", loginID);
+      System.out.println("User logged in as: " + loginID);
+      return;
+    }
+
+    // Ignore normal messages if client is not logged in
+    if (client.getInfo("loginID") == null)
+    {
+      try { client.sendToClient("ERROR: You must login first using #login <id>."); } catch (Exception e) {}
+      return;
+    }
+
+    // Get login ID and broadcast message in correct format
+    String sender = client.getInfo("loginID").toString();
+    sendToAllClients(sender + ": " + message);
   }
     
   /**
@@ -58,8 +95,7 @@ public class EchoServer extends AbstractServer
    */
   protected void serverStarted()
   {
-    System.out.println
-      ("Server listening for connections on port " + getPort());
+    System.out.println("Server listening for connections on port " + getPort());
   }
   
   /**
@@ -68,10 +104,8 @@ public class EchoServer extends AbstractServer
    */
   protected void serverStopped()
   {
-    System.out.println
-      ("Server has stopped listening for connections.");
+    System.out.println("Server has stopped listening for connections.");
   }
-  
   
   //Class methods ***************************************************
   

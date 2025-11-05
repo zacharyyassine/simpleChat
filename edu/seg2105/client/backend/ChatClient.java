@@ -10,23 +10,38 @@ import edu.seg2105.client.common.*;
 public class ChatClient extends AbstractClient
 {
   //Instance variables **********************************************
-  
+
   /**
-   * The interface type variable.  It allows display to UI.
+   * The interface type variable. It allows display to UI.
    */
-  private ChatIF clientUI; 
+  private ChatIF clientUI;
+
+  /**
+   * Login ID for this client user.
+   */
+  private String loginID;
 
   //Constructors ****************************************************
-  
+
   public ChatClient(String host, int port, ChatIF clientUI) throws IOException 
   {
     super(host, port);
     this.clientUI = clientUI;
     openConnection();  // Attempt immediate connection
+
+    // Automatically send login to server once connected
+    if (loginID != null) {
+      sendToServer("#login " + loginID);
+    }
   }
 
   //Instance methods ************************************************
-  
+
+  public void setLoginID(String id)
+  {
+    this.loginID = id;
+  }
+
   public void handleMessageFromServer(Object msg) 
   {
     clientUI.display(msg.toString());
@@ -59,13 +74,16 @@ public class ChatClient extends AbstractClient
     }
   }
 
-  /** LOGIN: Reconnect to server. */
+  /** LOGIN: Reconnect to server AND resend login ID. */
   public void login()
   {
     try 
     {
       openConnection();
       clientUI.display("Connected to server.");
+      if (loginID != null) {
+        sendToServer("#login " + loginID);
+      }
     } 
     catch (IOException e) 
     {
@@ -76,7 +94,7 @@ public class ChatClient extends AbstractClient
   /** Change host ONLY if NOT connected. */
   public void sethost(String host)
   {
-    if(!isConnected())
+    if (!isConnected())
       setHost(host);
     else
       clientUI.display("Error: Must be logged off before changing host.");
@@ -85,7 +103,7 @@ public class ChatClient extends AbstractClient
   /** Change port ONLY if NOT connected. */
   public void setport(int port)
   {
-    if(!isConnected())
+    if (!isConnected())
       setPort(port);
     else
       clientUI.display("Error: Must be logged off before changing port.");
