@@ -1,97 +1,112 @@
-// This file contains material supporting section 3.7 of the textbook:
-// "Object Oriented Software Engineering" and is issued under the open-source
-// license found at www.lloseng.com 
-
 package edu.seg2105.client.backend;
 
 import ocsf.client.*;
-
 import java.io.*;
-
 import edu.seg2105.client.common.*;
 
 /**
- * This class overrides some of the methods defined in the abstract
- * superclass in order to give more functionality to the client.
- *
- * @author Dr Timothy C. Lethbridge
- * @author Dr Robert Lagani&egrave;
- * @author Fran&ccedil;ois B&eacute;langer
+ * Chat Client class with added console command support.
  */
 public class ChatClient extends AbstractClient
 {
   //Instance variables **********************************************
   
   /**
-   * The interface type variable.  It allows the implementation of 
-   * the display method in the client.
+   * The interface type variable.  It allows display to UI.
    */
-  ChatIF clientUI; 
+  private ChatIF clientUI; 
 
-  
   //Constructors ****************************************************
   
-  /**
-   * Constructs an instance of the chat client.
-   *
-   * @param host The server to connect to.
-   * @param port The port number to connect on.
-   * @param clientUI The interface type variable.
-   */
-  
-  public ChatClient(String host, int port, ChatIF clientUI) 
-    throws IOException 
+  public ChatClient(String host, int port, ChatIF clientUI) throws IOException 
   {
-    super(host, port); //Call the superclass constructor
+    super(host, port);
     this.clientUI = clientUI;
-    openConnection();
+    openConnection();  // Attempt immediate connection
   }
 
-  
   //Instance methods ************************************************
-    
-  /**
-   * This method handles all data that comes in from the server.
-   *
-   * @param msg The message from the server.
-   */
+  
   public void handleMessageFromServer(Object msg) 
   {
     clientUI.display(msg.toString());
-    
-    
   }
 
-  /**
-   * This method handles all data coming from the UI            
-   *
-   * @param message The message from the UI.    
-   */
   public void handleMessageFromClientUI(String message)
   {
-    try
+    try 
     {
       sendToServer(message);
-    }
-    catch(IOException e)
+    } 
+    catch (IOException e) 
     {
-      clientUI.display
-        ("Could not send message to server.  Terminating client.");
+      clientUI.display("Could not send message to server.");
       quit();
     }
   }
-  
-  /**
-   * This method terminates the client.
-   */
-  public void quit()
+
+  /** LOGOFF: Disconnect from server but do NOT exit program. */
+  public void logoff()
   {
-    try
+    try 
     {
       closeConnection();
+      clientUI.display("Connection closed.");
+    } 
+    catch (IOException e) 
+    {
+      clientUI.display("Error closing connection.");
     }
-    catch(IOException e) {}
+  }
+
+  /** LOGIN: Reconnect to server. */
+  public void login()
+  {
+    try 
+    {
+      openConnection();
+      clientUI.display("Connected to server.");
+    } 
+    catch (IOException e) 
+    {
+      clientUI.display("Could not connect to server.");
+    }
+  }
+
+  /** Change host ONLY if NOT connected. */
+  public void sethost(String host)
+  {
+    if(!isConnected())
+      setHost(host);
+    else
+      clientUI.display("Error: Must be logged off before changing host.");
+  }
+
+  /** Change port ONLY if NOT connected. */
+  public void setport(int port)
+  {
+    if(!isConnected())
+      setPort(port);
+    else
+      clientUI.display("Error: Must be logged off before changing port.");
+  }
+
+  /** Display current host. */
+  public String getHostInfo()
+  {
+    return getHost();
+  }
+
+  /** Display current port. */
+  public int getPortInfo()
+  {
+    return getPort();
+  }
+
+  /** Quit client entirely. */
+  public void quit()
+  {
+    try { closeConnection(); } catch(IOException e) {}
     System.exit(0);
   }
 }
-//End of ChatClient class
